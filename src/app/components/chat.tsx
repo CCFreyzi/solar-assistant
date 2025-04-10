@@ -14,7 +14,8 @@ export default function Chat() {
       api: "/api/assistant",
     });
 
-  // Автоматична прокрутка до низу
+  const formRef = useRef<HTMLFormElement>(null);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -41,10 +42,11 @@ export default function Chat() {
   };
 
   useEffect(() => {
-    if (faqClicked && input) {
-      const formEvent = {
-        preventDefault: () => {},
-      } as React.FormEvent;
+    if (faqClicked && input && formRef.current) {
+      const formEvent = new Event('submit', { bubbles: true }) as unknown as React.FormEvent<HTMLFormElement>;
+      Object.defineProperty(formEvent, 'preventDefault', { value: () => {} });
+      Object.defineProperty(formEvent, 'currentTarget', { value: formRef.current });
+      
       submitMessage(formEvent);
       setFaqClicked(false);
     }
@@ -52,7 +54,6 @@ export default function Chat() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 px-2 pb-2 md:bottom-6 md:right-6 md:left-auto md:px-0 z-50 ">
-      {/* Chat button - тільки коли чат закритий */}
       {!isOpen && (
         <button
           onClick={toggleChat}
@@ -62,10 +63,8 @@ export default function Chat() {
         </button>
       )}
 
-      {/* Chat window */}
       {isOpen && (
         <div className="w-full mx-auto max-w-[calc(100%-16px)] md:max-w-none md:w-110 h-[550px] bg-[#EEEEEE] shadow-xl flex flex-col overflow-hidden rounded-sm">
-          {/* Header */}
           <div className="bg-[#00112D] text-white p-3 flex justify-between items-center">
             <h2 className="font-semibold">Solar Assistant</h2>
             <button
@@ -76,7 +75,6 @@ export default function Chat() {
             </button>
           </div>
 
-          {/* Messages container */}
           <div className="flex-1 p-4 overflow-y-auto bg-[#EEEEEE]">
             {messages.length === 0 ? (
               <div className="space-y-2">
@@ -120,8 +118,8 @@ export default function Chat() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input form */}
           <form
+            ref={formRef}
             onSubmit={submitMessage}
             className="p-3 border-t border-gray-300 flex gap-2 bg-white"
           >
